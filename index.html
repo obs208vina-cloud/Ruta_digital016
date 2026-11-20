@@ -101,19 +101,79 @@
       Ingresa para comenzar tu misión y continuar
       desde tu último punto de guardado.
     </p>
+   
+<button class="boton principal" type="button" onclick="mostrarFormulario('login')">
+  Iniciar sesión
+</button>
 
-    <button class="boton principal" type="button" disabled>
-      Iniciar sesión (próximamente)
-    </button>
-
-    <button class="boton secundario" type="button" disabled>
-      Crear mi cuenta (próximamente)
-    </button>
+<button class="boton secundario" type="button" onclick="mostrarFormulario('registro')">
+  Crear mi cuenta
+</button>
 
     <p class="nota">
       Centro de Salud Familiar Docente-Asistencial<br>
       Simulación Cero · Acceso estudiantil
     </p>
   </main>
+  
+<section id="formularioAcceso" hidden>
+  <h2 id="tituloFormulario">Iniciar sesión</h2>
+
+  <form id="formAuth">
+    <label for="correo">Correo institucional</label>
+    <input
+      id="correo"
+      type="email"
+      placeholder="nombre@uandresbello.edu"
+      autocomplete="email"
+      required
+    >
+
+    <label for="contrasena">Contraseña</label>
+    <input
+      id="contrasena"
+      type="password"
+      placeholder="Ingresa tu contraseña"
+      minlength="8"
+      required
+    >
+
+    <button type="submit" id="botonEnviar">
+      Continuar
+    </button>
+  </form>
+
+  <p id="mensajeAuth" role="status"></p>
+
+  <button type="button" onclick="cerrarFormulario()">
+    Volver
+  </button>
+</section>
+
+<script>
+  let modoFormulario = "login";
+
+  function mostrarFormulario(modo) {
+    modoFormulario = modo;
+
+    document.querySelector("main").hidden = true;
+    document.getElementById("formularioAcceso").hidden = false;
+
+    document.getElementById("tituloFormulario").textContent =
+      modo === "registro" ? "Crear mi cuenta" : "Iniciar sesión";
+
+    document.getElementById("botonEnviar").textContent =
+      modo === "registro" ? "Registrarme" : "Ingresar";
+
+    document.getElementById("mensajeAuth").textContent = "";
+  }
+
+  function cerrarFormulario() {
+    document.getElementById("formularioAcceso").hidden = true;
+    document.querySelector("main").hidden = false;
+    document.getElementById("formAuth").reset();
+  }
+</script>
+
 </body>
 </html>
