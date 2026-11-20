@@ -246,6 +246,61 @@
     document.querySelector("main").hidden = false;
     document.getElementById("formAuth").reset();
   }
+  
+document.getElementById("formAuth").addEventListener("submit", async function(event) {
+  event.preventDefault();
+
+  const correo = document.getElementById("correo").value.trim().toLowerCase();
+  const contrasena = document.getElementById("contrasena").value;
+  const mensaje = document.getElementById("mensajeAuth");
+  const boton = document.getElementById("botonEnviar");
+
+  if (!correo.endsWith("@uandresbello.edu")) {
+    mensaje.textContent = "Debes utilizar tu correo institucional @uandresbello.edu.";
+    return;
+  }
+
+  if (contrasena.length < 8) {
+    mensaje.textContent = "La contraseña debe tener al menos 8 caracteres.";
+    return;
+  }
+
+  boton.disabled = true;
+  mensaje.textContent = "Procesando solicitud...";
+
+  try {
+    if (modoFormulario === "registro") {
+      const { error } = await supabaseClient.auth.signUp({
+        email: correo,
+        password: contrasena,
+        options: {
+          emailRedirectTo: "https://obs208vina-cloud.github.io/Ruta_digital016/index.html"
+        }
+      });
+
+      if (error) throw error;
+
+      mensaje.textContent =
+        "Solicitud de registro procesada. Revisa tu correo institucional para confirmar tu cuenta, si se solicita confirmación.";
+    } else {
+      const { error } = await supabaseClient.auth.signInWithPassword({
+        email: correo,
+        password: contrasena
+      });
+
+      if (error) throw error;
+
+      mensaje.textContent = "¡Inicio de sesión exitoso!";
+    }
+  } catch (error) {
+    console.error("Error de autenticación:", error);
+    mensaje.textContent =
+      "No fue posible completar la solicitud. Verifica tus datos e inténtalo nuevamente.";
+  } finally {
+    boton.disabled = false;
+  }
+});
+
 </script>
 
 </body>
