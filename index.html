@@ -291,6 +291,20 @@ document.getElementById("formAuth").addEventListener("submit", async function(ev
       if (error) throw error;
 
       mensaje.textContent = "¡Inicio de sesión exitoso!";
+      
+document.querySelector("main").hidden = true;
+document.getElementById("formularioAcceso").hidden = true;
+
+const pantallaGenially = document.getElementById("pantallaGenially");
+pantallaGenially.hidden = false;
+
+document.body.style.padding = "0";
+document.body.style.display = "block";
+document.body.style.overflow = "hidden";
+
+pantallaGenially.style.width = "100%";
+pantallaGenially.style.height = "100vh";
+
     }
   } catch (error) {
     console.error("Error de autenticación:", error);
