@@ -1,7 +1,19 @@
 
 <!DOCTYPE html>
 <html lang="es">
-<head>
+<head> 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  
+<script>
+  const SUPABASE_URL = "https://zdfwwttsdwqzukhvvtep.supabase.co";
+  const SUPABASE_PUBLIC_KEY = "sb_publishable_ZSSWVcoXLoopUeHmPE4Djw_IL-p_yOe";
+
+  const supabaseClient = window.supabase.createClient(
+    SUPABASE_URL,
+    SUPABASE_PUBLIC_KEY
+  );
+</script>
+
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>CESFAM Regional Universitario | Acceso</title>
