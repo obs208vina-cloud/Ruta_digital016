@@ -83,7 +83,7 @@
       boton.disabled = true;
       mensaje.textContent = 'Solicitando guardado...';
 
-      window.parent.postMessage({
+      window.top.postMessage({
         tipo: 'GUARDAR_CHECKPOINT',
         etapa: etapa
       }, '*');
