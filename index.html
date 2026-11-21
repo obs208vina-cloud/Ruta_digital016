@@ -150,6 +150,31 @@
       console.info('Checkpoint guardado:', etapa);
       return data;
     }
+        window.addEventListener('message', async function(event) {
+      if (event.origin !== 'https://view.genially.com') return;
+
+      const mensaje = event.data;
+
+      if (!mensaje || mensaje.tipo !== 'GUARDAR_CHECKPOINT') return;
+
+      const etapasPermitidas = [
+        'inicio',
+        'escape_room',
+        'paciente_1',
+        'paciente_2',
+        'paciente_3',
+        'evaluacion_final'
+      ];
+
+      if (!etapasPermitidas.includes(mensaje.etapa)) return;
+
+      try {
+        await guardarProgreso(mensaje.etapa);
+        console.info('Checkpoint guardado:', mensaje.etapa);
+      } catch (error) {
+        console.error('Error al guardar checkpoint:', error);
+      }
+    });
     async function entrarConUsuario(usuario) {
       if (!usuario || !usuario.email?.toLowerCase().endsWith('@uandresbello.edu')) {
         await supabaseClient.auth.signOut();
