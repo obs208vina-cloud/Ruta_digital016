@@ -176,20 +176,22 @@ try {
   await guardarProgreso(mensaje.etapa);
   console.info('Checkpoint guardado:', mensaje.etapa);
 
-  event.source.postMessage({
+if (event.ports && event.ports[0]) {
+  event.ports[0].postMessage({
     tipo: 'CHECKPOINT_RESULTADO',
     etapa: mensaje.etapa,
     correcto: true
-  }, event.origin);
-
+  });
+}
 } catch (error) {
   console.error('Error al guardar checkpoint:', error);
 
-  event.source.postMessage({
+ if (event.ports && event.ports[0]) {
+  event.ports[0].postMessage({
     tipo: 'CHECKPOINT_RESULTADO',
     etapa: mensaje.etapa,
     correcto: false
-  }, event.origin);
+  });
 }
     });
     async function entrarConUsuario(usuario) {
