@@ -191,11 +191,11 @@ if (event.ports && event.ports[0]) {
     tipo: 'CHECKPOINT_RESULTADO',
     etapa: mensaje.etapa,
     correcto: false
-  });
-}
-}  
-    });
-    async function entrarConUsuario(usuario) {
+      });
+    }
+  }
+});
+async function entrarConUsuario(usuario) {
       if (!usuario || !usuario.email?.toLowerCase().endsWith('@uandresbello.edu')) {
         await supabaseClient.auth.signOut();
         mostrarInicio();
