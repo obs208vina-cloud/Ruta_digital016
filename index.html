@@ -151,7 +151,11 @@
       return data;
     }
         window.addEventListener('message', async function(event) {
-      if (event.origin !== 'https://view.genially.com') return;
+      
+if (
+  event.origin !== 'https://view.genially.com' &&
+  event.origin !== 'https://obs208vina-cloud.github.io'
+) return;
 
       const mensaje = event.data;
 
