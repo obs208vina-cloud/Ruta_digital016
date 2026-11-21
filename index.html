@@ -26,6 +26,10 @@
     #botonEnviar:disabled { opacity:.65; cursor:wait; }
     #formularioAcceso > button { background:#e3f5f3; color:#006c7a; border:1px solid #a5dcd8; border-radius:10px; padding:12px 30px; font-size:15px; cursor:pointer; margin-top:18px; }
     #mensajeAuth, #mensajeInicio { margin-top:12px; font-size:14px; line-height:1.5; }
+    #pantallaMision { max-width:520px; }
+    #estadoMision { background:#e5f6f3; border-radius:12px; padding:16px; margin:18px 0; line-height:1.5; }
+    #avisoMision { color:#8b4b17; font-size:14px; line-height:1.5; }
+    .boton:disabled { opacity:.55; cursor:not-allowed; }
     #pantallaGenially { position:fixed; inset:0; background:white; }
     #pantallaGenially iframe { width:100%; height:100%; border:0; display:block; }
     #barraSesion { position:absolute; z-index:2; top:8px; right:10px; display:flex; gap:8px; align-items:center; padding:5px 8px; border-radius:10px; background:rgba(255,255,255,.92); box-shadow:0 2px 10px #0002; font-size:12px; }
@@ -55,6 +59,17 @@
     </form>
     <p id="mensajeAuth" role="status"></p>
     <button type="button" onclick="cerrarFormulario()">Volver</button>
+  </section>
+
+  <section class="tarjeta" id="pantallaMision" hidden>
+    <div class="icono">🏥</div>
+    <h1>Mi misión</h1>
+    <p class="subtitulo">Selecciona cómo quieres ingresar al CESFAM Regional Universitario.</p>
+    <div id="estadoMision" role="status">Consultando tu progreso...</div>
+    <button class="boton principal" id="botonComenzar" type="button">Comenzar desde el inicio</button>
+    <button class="boton secundario" id="botonRetomar" type="button" hidden disabled>Continuar desde mi último avance</button>
+    <p id="avisoMision" role="status"></p>
+    <button class="boton secundario" id="botonSalirMision" type="button">Cerrar sesión</button>
   </section>
 
   <section id="pantallaGenially" hidden>
@@ -88,6 +103,7 @@
     function mostrarGenially(usuario) {
       document.getElementById('pantallaInicio').hidden = true;
       document.getElementById('formularioAcceso').hidden = true;
+      document.getElementById('pantallaMision').hidden = true;
       document.getElementById('pantallaGenially').hidden = false;
       document.getElementById('usuarioActivo').textContent = usuario.email || 'Sesión activa';
       document.body.style.padding = '0';
@@ -96,6 +112,7 @@
     
     function mostrarInicio() {
       document.getElementById('pantallaGenially').hidden = true;
+      document.getElementById('pantallaMision').hidden = true;
       document.getElementById('formularioAcceso').hidden = true;
       document.getElementById('pantallaInicio').hidden = false;
       document.body.style.padding = '24px';
@@ -195,24 +212,84 @@ if (event.ports && event.ports[0]) {
     }
   }
 });
-async function entrarConUsuario(usuario) {
+    const nombresEtapa = {
+      inicio: 'Todavía no tienes actividades completadas',
+      escape_room: 'Escape Room completado',
+      paciente_1: 'Paciente 1 completado',
+      paciente_2: 'Paciente 2 completado',
+      paciente_3: 'Paciente 3 completado',
+      evaluacion_final: 'Evaluación final completada'
+    };
+
+    function mostrarPantallaMision() {
+      document.getElementById('pantallaInicio').hidden = true;
+      document.getElementById('formularioAcceso').hidden = true;
+      document.getElementById('pantallaGenially').hidden = true;
+      document.getElementById('pantallaMision').hidden = false;
+      document.body.style.padding = '24px';
+      document.body.style.overflow = '';
+    }
+
+    async function entrarConUsuario(usuario) {
       if (!usuario || !usuario.email?.toLowerCase().endsWith('@uandresbello.edu')) {
         await supabaseClient.auth.signOut();
         mostrarInicio();
-        document.getElementById('mensajeInicio').textContent = 'El acceso requiere una cuenta institucional @uandresbello.edu.';
+        document.getElementById('mensajeInicio').textContent =
+          'El acceso requiere una cuenta institucional @uandresbello.edu.';
         return;
       }
-      // El acceso al Genially no depende de que la base de datos esté disponible.
-      mostrarGenially(usuario);
+
+      mostrarPantallaMision();
+      const estado = document.getElementById('estadoMision');
+      const retomar = document.getElementById('botonRetomar');
+      const aviso = document.getElementById('avisoMision');
+      estado.textContent = 'Consultando tu progreso...';
+      aviso.textContent = '';
+      retomar.hidden = true;
+      retomar.disabled = true;
+
       try {
         progresoActual = await obtenerOCrearProgreso(usuario);
-        console.info('Progreso recuperado:', progresoActual.etapa_actual);
+        const etapa = progresoActual.etapa_actual || 'inicio';
+        estado.textContent = 'Tu último avance: ' + (nombresEtapa[etapa] || etapa);
+        if (etapa !== 'inicio') {
+          retomar.hidden = false;
+          aviso.textContent = 'La recuperación automática de la diapositiva todavía está en preparación. Puedes ingresar desde el inicio mientras la configuramos.';
+        }
       } catch (error) {
         console.error('No se pudo recuperar el progreso:', error);
-        // Se avisa sin interrumpir la sesión: aún no hay puntos de guardado conectados.
-        document.getElementById('usuarioActivo').textContent = 'Progreso no disponible';
+        progresoActual = null;
+        estado.textContent = 'No se pudo consultar tu progreso.';
+        aviso.textContent = 'Puedes entrar a la ruta, pero el guardado podría no estar disponible.';
       }
     }
+
+    document.getElementById('botonComenzar').addEventListener('click', async () => {
+      const { data: { user } } = await supabaseClient.auth.getUser();
+      if (user) mostrarGenially(user);
+      else mostrarInicio();
+    });
+
+    // Se habilitará al verificar un mecanismo de navegación a diapositivas internas de Genially.
+    document.getElementById('botonRetomar').addEventListener('click', () => {
+      document.getElementById('avisoMision').textContent =
+        'Todavía estamos configurando el acceso directo al último checkpoint.';
+    });
+
+    async function cerrarSesion() {
+      try {
+        const { error } = await supabaseClient.auth.signOut();
+        if (error) throw error;
+        const iframe = document.querySelector('#pantallaGenially iframe');
+        iframe.src = iframe.src;
+        mostrarInicio();
+      } catch (error) {
+        console.error('Error al cerrar sesión:', error);
+        alert('No se pudo cerrar la sesión. Inténtalo nuevamente.');
+      }
+    }
+
+    document.getElementById('botonSalirMision').addEventListener('click', cerrarSesion);
 
     document.getElementById('formAuth').addEventListener('submit', async (event) => {
       event.preventDefault();
@@ -252,19 +329,7 @@ async function entrarConUsuario(usuario) {
       }
     });
 
-    document.getElementById('botonSalir').addEventListener('click', async () => {
-      try {
-        const { error } = await supabaseClient.auth.signOut();
-        if (error) throw error;
-        // Recarga el iframe para no dejar la sesión anterior abierta visualmente.
-        const iframe = document.querySelector('#pantallaGenially iframe');
-        iframe.src = iframe.src;
-        mostrarInicio();
-      } catch (error) {
-        console.error('Error al cerrar sesión:', error);
-        alert('No se pudo cerrar la sesión. Inténtalo nuevamente.');
-      }
-    });
+    document.getElementById('botonSalir').addEventListener('click', cerrarSesion);
 
     (async () => {
       try {
