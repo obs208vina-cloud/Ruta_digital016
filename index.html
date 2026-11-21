@@ -91,21 +91,25 @@
     let progresoActual = null;
     const GENIALLY_1 = 'https://view.genially.com/6b01e963728f59ea93de097e';
     const GENIALLY_2 = 'https://view.genially.com/6b01ea78bb38145bf00de2b7';
+    const GENIALLY_3 = 'https://view.genially.com/6b01eb981ddbad2fb1466ed7';
     const ordenEtapas = ['inicio','escape_room','paciente_1','paciente_2','paciente_3','evaluacion_final'];
     let parteVisible = 1;
     function cambiarParte(parte) {
-      if (parte !== 1 && parte !== 2) return;
+      if (![1, 2, 3].includes(parte)) return;
       parteVisible = parte;
       const iframe = document.querySelector('#pantallaGenially iframe');
-      const destino = parte === 2 ? GENIALLY_2 : GENIALLY_1;
+      const destino = parte === 3 ? GENIALLY_3 : parte === 2 ? GENIALLY_2 : GENIALLY_1;
       if (iframe.getAttribute('src') !== destino) iframe.setAttribute('src', destino);
       actualizarBotonSiguiente();
     }
     function actualizarBotonSiguiente() {
       const boton = document.getElementById('botonSiguiente');
-      boton.hidden = parteVisible !== 1;
-      boton.disabled = !progresoActual || ordenEtapas.indexOf(progresoActual.etapa_actual) < 1;
-      boton.title = boton.disabled ? 'Primero guarda el Escape Room' : 'Ir a Paciente 1';
+      boton.hidden = parteVisible === 3;
+      const etapaRequerida = parteVisible === 2 ? 2 : 1;
+      const siguiente = parteVisible === 2 ? 'Paciente 2' : 'Paciente 1';
+      boton.textContent = 'Continuar a ' + siguiente + ' →';
+      boton.disabled = !progresoActual || ordenEtapas.indexOf(progresoActual.etapa_actual) < etapaRequerida;
+      boton.title = boton.disabled ? 'Primero guarda el progreso de esta etapa' : 'Ir a ' + siguiente;
     }
 
     function mostrarFormulario(modo) {
@@ -230,6 +234,31 @@ if (
         }
         return;
       }
+      if (mensaje.tipo === 'CONTINUAR_A_PACIENTE_2') {
+        const responder = (correcto, mensajeTexto) => {
+          if (event.ports && event.ports[0]) event.ports[0].postMessage({ correcto, mensaje: mensajeTexto });
+        };
+        try {
+          if (event.origin !== 'https://obs208vina-cloud.github.io') return;
+          if (parteVisible !== 2 || document.getElementById('pantallaGenially').hidden) {
+            responder(false, 'El Paciente 1 no está activo.');
+            return;
+          }
+          const { data: { user }, error: errorUsuario } = await supabaseClient.auth.getUser();
+          if (errorUsuario || !user) throw new Error('Inicia sesión para continuar.');
+          progresoActual = await obtenerOCrearProgreso(user);
+          if (ordenEtapas.indexOf(progresoActual.etapa_actual) < 2) {
+            responder(false, 'Primero guarda el Paciente 1 y espera la confirmación.');
+            return;
+          }
+          responder(true, 'Checkpoint confirmado');
+          cambiarParte(3);
+        } catch (error) {
+          console.error('No se pudo continuar al Paciente 2:', error);
+          responder(false, 'No se pudo comprobar el progreso. Inténtalo nuevamente.');
+        }
+        return;
+      }
       if (mensaje.tipo !== 'GUARDAR_CHECKPOINT') return;
 
       const etapasPermitidas = [
@@ -310,6 +339,7 @@ if (event.ports && event.ports[0]) {
           retomar.hidden = false;
           retomar.disabled = false;
           if (etapa === 'escape_room') aviso.textContent = 'Puedes continuar desde Paciente 1.';
+          else if (etapa === 'paciente_1') aviso.textContent = 'Puedes continuar desde Paciente 2.';
           else aviso.textContent = 'Las partes posteriores se habilitarán cuando incorporemos sus enlaces.';
         }
       } catch (error) {
@@ -331,7 +361,9 @@ if (event.ports && event.ports[0]) {
       if (!user) return mostrarInicio();
       try {
         progresoActual = await obtenerOCrearProgreso(user);
-        if (ordenEtapas.indexOf(progresoActual.etapa_actual) >= 1) mostrarGenially(user, 2);
+        const indice = ordenEtapas.indexOf(progresoActual.etapa_actual);
+        if (indice >= 2) mostrarGenially(user, 3);
+        else if (indice >= 1) mostrarGenially(user, 2);
         else mostrarGenially(user, 1);
       } catch (error) {
         document.getElementById('avisoMision').textContent = 'No se pudo verificar tu avance. Inténtalo nuevamente.';
@@ -345,11 +377,12 @@ if (event.ports && event.ports[0]) {
         const { data: { user } } = await supabaseClient.auth.getUser();
         if (!user) throw new Error('Sesión no disponible');
         progresoActual = await obtenerOCrearProgreso(user);
-        if (ordenEtapas.indexOf(progresoActual.etapa_actual) < 1) {
-          alert('Primero debes guardar el Escape Room y esperar la confirmación.');
+        const requerido = parteVisible === 2 ? 2 : 1;
+        if (ordenEtapas.indexOf(progresoActual.etapa_actual) < requerido) {
+          alert('Primero debes guardar el progreso de esta etapa y esperar la confirmación.');
           return;
         }
-        cambiarParte(2);
+        cambiarParte(parteVisible === 2 ? 3 : 2);
       } catch (error) {
         alert('No fue posible comprobar el checkpoint. Inténtalo nuevamente.');
       } finally { actualizarBotonSiguiente(); }
