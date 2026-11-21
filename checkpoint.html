@@ -1,0 +1,97 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      padding: 12px;
+      background: transparent;
+      font-family: Arial, sans-serif;
+      text-align: center;
+    }
+
+    button {
+      width: 100%;
+      max-width: 340px;
+      padding: 15px 20px;
+      border: 2px solid #075c69;
+      border-radius: 16px;
+      background: linear-gradient(135deg, #0c8d94, #08717f);
+      color: white;
+      font-size: 19px;
+      font-weight: bold;
+      cursor: pointer;
+      box-shadow: 0 5px 12px #075c6933;
+    }
+
+    button:disabled {
+      opacity: 0.65;
+      cursor: wait;
+    }
+
+    #mensaje {
+      margin: 10px auto 0;
+      color: #075c69;
+      font-size: 14px;
+      font-weight: bold;
+      background: #ffffffed;
+      border-radius: 8px;
+      max-width: 340px;
+      padding: 5px;
+    }
+
+    #mensaje:empty { display: none; }
+  </style>
+</head>
+<body>
+
+  <button id="guardar" type="button">
+    💾 Guardar progreso
+  </button>
+
+  <div id="mensaje" role="status"></div>
+
+  <script>
+    const etapasPermitidas = [
+      'inicio',
+      'escape_room',
+      'paciente_1',
+      'paciente_2',
+      'paciente_3',
+      'evaluacion_final'
+    ];
+
+    const parametros = new URLSearchParams(location.search);
+    const etapa = parametros.get('etapa');
+
+    const boton = document.getElementById('guardar');
+    const mensaje = document.getElementById('mensaje');
+
+    if (!etapasPermitidas.includes(etapa)) {
+      boton.disabled = true;
+      mensaje.textContent = 'Checkpoint no configurado.';
+    }
+
+    boton.addEventListener('click', function() {
+      if (boton.disabled) return;
+
+      boton.disabled = true;
+      mensaje.textContent = 'Solicitando guardado...';
+
+      window.parent.postMessage({
+        tipo: 'GUARDAR_CHECKPOINT',
+        etapa: etapa
+      }, '*');
+
+      mensaje.textContent =
+        'Solicitud enviada. Guardado pendiente de confirmación.';
+    });
+  </script>
+
+</body>
+</html>
