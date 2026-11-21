@@ -54,7 +54,7 @@
     💾 Guardar progreso
   </button>
 
-  <div id="mensaje" role="status"></div>
+  <div id="mensaje" role="status" aria-live="polite"></div>
 
   <script>
     const etapasPermitidas = [
@@ -72,6 +72,11 @@
     const boton = document.getElementById('guardar');
     const mensaje = document.getElementById('mensaje');
 
+    const origenGitHub =
+      'https://obs208vina-cloud.github.io';
+
+    let esperandoRespuesta = false;
+
     if (!etapasPermitidas.includes(etapa)) {
       boton.disabled = true;
       mensaje.textContent = 'Checkpoint no configurado.';
@@ -81,15 +86,37 @@
       if (boton.disabled) return;
 
       boton.disabled = true;
-      mensaje.textContent = 'Solicitando guardado...';
+      esperandoRespuesta = true;
+      mensaje.textContent = 'Guardando progreso...';
 
       window.top.postMessage({
         tipo: 'GUARDAR_CHECKPOINT',
         etapa: etapa
-      }, '*');
+      }, origenGitHub);
+    });
 
-      mensaje.textContent =
-        'Solicitud enviada. Guardado pendiente de confirmación.';
+    window.addEventListener('message', function(event) {
+      if (event.origin !== origenGitHub) return;
+
+      const respuesta = event.data;
+
+      if (
+        !esperandoRespuesta ||
+        !respuesta ||
+        respuesta.tipo !== 'CHECKPOINT_RESULTADO' ||
+        respuesta.etapa !== etapa
+      ) return;
+
+      esperandoRespuesta = false;
+
+      if (respuesta.correcto === true) {
+        mensaje.textContent =
+          '✅ Progreso guardado correctamente. Puedes continuar.';
+      } else {
+        mensaje.textContent =
+          '❌ No se pudo guardar. Inténtalo nuevamente.';
+        boton.disabled = false;
+      }
     });
   </script>
 
