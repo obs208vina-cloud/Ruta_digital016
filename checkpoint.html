@@ -1,4 +1,4 @@
-
+f
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -89,10 +89,36 @@
       esperandoRespuesta = true;
       mensaje.textContent = 'Guardando progreso...';
 
-      window.top.postMessage({
-        tipo: 'GUARDAR_CHECKPOINT',
-        etapa: etapa
-      }, origenGitHub);
+      
+const canal = new MessageChannel();
+
+canal.port1.onmessage = function(evento) {
+  const respuesta = evento.data;
+
+  if (
+    !respuesta ||
+    respuesta.tipo !== 'CHECKPOINT_RESULTADO' ||
+    respuesta.etapa !== etapa
+  ) return;
+
+  esperandoRespuesta = false;
+
+  if (respuesta.correcto === true) {
+    mensaje.textContent =
+      '✅ Progreso guardado correctamente. Puedes continuar.';
+  } else {
+    mensaje.textContent =
+      '❌ No se pudo guardar. Inténtalo nuevamente.';
+    boton.disabled = false;
+  }
+
+  canal.port1.close();
+};
+
+window.top.postMessage({
+  tipo: 'GUARDAR_CHECKPOINT',
+  etapa: etapa
+}, origenGitHub, [canal.port2]);
     });
 
     window.addEventListener('message', function(event) {
