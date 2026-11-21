@@ -1,336 +1,207 @@
-
 <!DOCTYPE html>
 <html lang="es">
-<head> 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
-<script>
-  const SUPABASE_URL = "https://zdfwwttsdwqzukhvvtep.supabase.co";
-  const SUPABASE_PUBLIC_KEY = "sb_publishable_ZSSWVcoXLoopUeHmPE4Djw_IL-p_yOe";
-
-  const supabaseClient = window.supabase.createClient(
-    SUPABASE_URL,
-    SUPABASE_PUBLIC_KEY
-  );
-</script>
-
+<head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>CESFAM Regional Universitario | Acceso</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     * { box-sizing: border-box; }
-
-    body {
-      margin: 0;
-      min-height: 100vh;
-      font-family: Arial, sans-serif;
-      background: linear-gradient(135deg, #e6faf5, #b9e6e5);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      padding: 24px;
-      color: #174b59;
-    }
-
-    .tarjeta {
-      background: white;
-      width: 100%;
-      max-width: 460px;
-      padding: 38px;
-      border-radius: 24px;
-      text-align: center;
-      box-shadow: 0 12px 40px #165c6a25;
-    }
-
-    .icono {
-      font-size: 48px;
-      margin-bottom: 12px;
-    }
-
-    h1 {
-      color: #086b7c;
-      font-size: 27px;
-      margin: 0 0 10px;
-    }
-
-    .subtitulo {
-      color: #52727a;
-      line-height: 1.6;
-      margin-bottom: 28px;
-    }
-
-    .boton {
-      display: block;
-      width: 100%;
-      padding: 15px;
-      margin-top: 12px;
-      border: 0;
-      border-radius: 12px;
-      font-size: 16px;
-      font-weight: bold;
-      cursor: pointer;
-    }
-
-    .principal {
-      background: #087e87;
-      color: white;
-    }
-
-    .secundario {
-      background: #e5f6f3;
-      color: #086b7c;
-      border: 1px solid #9ad5d2;
-    }
-
-    .nota {
-      margin-top: 24px;
-      font-size: 13px;
-      color: #69828a;
-      line-height: 1.5;
-    }
-  
-/* Formularios de acceso y registro */
-
-#formularioAcceso {
-  background: white;
-  width: 100%;
-  max-width: 495px;
-  padding: 42px 40px;
-  border-radius: 26px;
-  box-shadow: 0 15px 40px rgba(0, 100, 110, 0.12);
-  text-align: center;
-}
-
-#formularioAcceso[hidden] {
-  display: none;
-}
-
-#tituloFormulario {
-  color: #006c7a;
-  font-size: 28px;
-  margin-bottom: 28px;
-}
-
-#formAuth {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  text-align: left;
-}
-
-#formAuth label {
-  color: #174b59;
-  font-weight: bold;
-  font-size: 15px;
-}
-
-#formAuth input {
-  width: 100%;
-  padding: 14px;
-  border: 1px solid #b8dbdb;
-  border-radius: 10px;
-  font-size: 16px;
-  margin-bottom: 10px;
-}
-
-#botonEnviar {
-  background: #087f8c;
-  color: white;
-  border: none;
-  padding: 15px;
-  border-radius: 10px;
-  font-size: 17px;
-  font-weight: bold;
-  cursor: pointer;
-  margin-top: 8px;
-}
-
-#formularioAcceso > button {
-  background: #e3f5f3;
-  color: #006c7a;
-  border: 1px solid #a5dcd8;
-  border-radius: 10px;
-  padding: 12px 30px;
-  font-size: 15px;
-  cursor: pointer;
-  margin-top: 18px;
-}
-
-#mensajeAuth {
-  margin-top: 12px;
-  font-size: 14px;
-}
-
+    [hidden] { display: none !important; }
+    body { margin: 0; min-height: 100vh; font-family: Arial,sans-serif; background: linear-gradient(135deg,#e6faf5,#b9e6e5); display:flex; justify-content:center; align-items:center; padding:24px; color:#174b59; }
+    .tarjeta, #formularioAcceso { background:white; width:100%; max-width:460px; padding:38px; border-radius:24px; text-align:center; box-shadow:0 12px 40px #165c6a25; }
+    .icono { font-size:48px; margin-bottom:12px; }
+    h1 { color:#086b7c; font-size:27px; margin:0 0 10px; }
+    .subtitulo { color:#52727a; line-height:1.6; margin-bottom:28px; }
+    .boton { display:block; width:100%; padding:15px; margin-top:12px; border:0; border-radius:12px; font-size:16px; font-weight:bold; cursor:pointer; }
+    .principal { background:#087e87; color:white; }
+    .secundario { background:#e5f6f3; color:#086b7c; border:1px solid #9ad5d2; }
+    .nota { margin-top:24px; font-size:13px; color:#69828a; line-height:1.5; }
+    #formularioAcceso { max-width:495px; padding:42px 40px; }
+    #tituloFormulario { color:#006c7a; font-size:28px; margin-bottom:28px; }
+    #formAuth { display:flex; flex-direction:column; gap:12px; text-align:left; }
+    #formAuth label { color:#174b59; font-weight:bold; font-size:15px; }
+    #formAuth input { width:100%; padding:14px; border:1px solid #b8dbdb; border-radius:10px; font-size:16px; margin-bottom:10px; }
+    #botonEnviar { background:#087f8c; color:white; border:0; padding:15px; border-radius:10px; font-size:17px; font-weight:bold; cursor:pointer; margin-top:8px; }
+    #botonEnviar:disabled { opacity:.65; cursor:wait; }
+    #formularioAcceso > button { background:#e3f5f3; color:#006c7a; border:1px solid #a5dcd8; border-radius:10px; padding:12px 30px; font-size:15px; cursor:pointer; margin-top:18px; }
+    #mensajeAuth, #mensajeInicio { margin-top:12px; font-size:14px; line-height:1.5; }
+    #pantallaGenially { position:fixed; inset:0; background:white; }
+    #pantallaGenially iframe { width:100%; height:100%; border:0; display:block; }
+    #barraSesion { position:absolute; z-index:2; top:8px; right:10px; display:flex; gap:8px; align-items:center; padding:5px 8px; border-radius:10px; background:rgba(255,255,255,.92); box-shadow:0 2px 10px #0002; font-size:12px; }
+    #barraSesion button { background:#087e87; color:white; border:0; border-radius:7px; padding:7px 9px; cursor:pointer; }
+    @media(max-width:600px) { #barraSesion span { display:none; } .tarjeta,#formularioAcceso { padding:26px; } }
   </style>
 </head>
 <body>
-  <main class="tarjeta">
+  <main class="tarjeta" id="pantallaInicio">
     <div class="icono">🏥</div>
-
     <h1>CESFAM Regional Universitario</h1>
-
-    <p class="subtitulo">
-      Bienvenida a tu ruta de simulación clínica.
-      Ingresa para comenzar tu misión y continuar
-      desde tu último punto de guardado.
-    </p>
-   
-<button class="boton principal" type="button" onclick="mostrarFormulario('login')">
-  Iniciar sesión
-</button>
-
-<button class="boton secundario" type="button" onclick="mostrarFormulario('registro')">
-  Crear mi cuenta
-</button>
-
-    <p class="nota">
-      Centro de Salud Familiar Docente-Asistencial<br>
-      Simulación Cero · Acceso estudiantil
-    </p>
+    <p class="subtitulo">Bienvenida a tu ruta de simulación clínica. Ingresa para comenzar tu misión y continuar desde tu último punto de guardado.</p>
+    <button class="boton principal" type="button" onclick="mostrarFormulario('login')">Iniciar sesión</button>
+    <button class="boton secundario" type="button" onclick="mostrarFormulario('registro')">Crear mi cuenta</button>
+    <p id="mensajeInicio" role="status"></p>
+    <p class="nota">Centro de Salud Familiar Docente-Asistencial<br>Simulación Cero · Acceso estudiantil</p>
   </main>
-  
-<section id="formularioAcceso" hidden>
-  <h2 id="tituloFormulario">Iniciar sesión</h2>
 
-  <form id="formAuth">
-    <label for="correo">Correo institucional</label>
-    <input
-      id="correo"
-      type="email"
-      placeholder="nombre@uandresbello.edu"
-      autocomplete="email"
-      required
-    >
+  <section id="formularioAcceso" hidden>
+    <h2 id="tituloFormulario">Iniciar sesión</h2>
+    <form id="formAuth">
+      <label for="correo">Correo institucional</label>
+      <input id="correo" type="email" placeholder="nombre@uandresbello.edu" autocomplete="email" required>
+      <label for="contrasena">Contraseña</label>
+      <input id="contrasena" type="password" placeholder="Ingresa tu contraseña" minlength="8" required>
+      <button type="submit" id="botonEnviar">Continuar</button>
+    </form>
+    <p id="mensajeAuth" role="status"></p>
+    <button type="button" onclick="cerrarFormulario()">Volver</button>
+  </section>
 
-    <label for="contrasena">Contraseña</label>
-    <input
-      id="contrasena"
-      type="password"
-      placeholder="Ingresa tu contraseña"
-      minlength="8"
-      required
-    >
+  <section id="pantallaGenially" hidden>
+    <div id="barraSesion">
+      <span id="usuarioActivo"></span>
+      <button type="button" id="botonSalir">Cerrar sesión</button>
+    </div>
+    <iframe src="https://view.genially.com/6ae65851927887383ece118f" title="Ruta de Simulación Cero - CESFAM Regional Universitario" allow="fullscreen; autoplay" allowfullscreen></iframe>
+  </section>
 
-    <button type="submit" id="botonEnviar">
-      Continuar
-    </button>
-  </form>
+  <script>
+    const SUPABASE_URL = 'https://zdfwwttsdwqzukhvvtep.supabase.co';
+    const SUPABASE_PUBLIC_KEY = 'sb_publishable_ZSSWVcoXLoopUeHmPE4Djw_IL-p_yOe';
+    const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLIC_KEY);
+    let modoFormulario = 'login';
+    let progresoActual = null;
 
-  <p id="mensajeAuth" role="status"></p>
-
-  <button type="button" onclick="cerrarFormulario()">
-    Volver
-  </button>
-</section>
-
-<script>
-  let modoFormulario = "login";
-
-  function mostrarFormulario(modo) {
-    modoFormulario = modo;
-
-    document.querySelector("main").hidden = true;
-    document.getElementById("formularioAcceso").hidden = false;
-
-    document.getElementById("tituloFormulario").textContent =
-      modo === "registro" ? "Crear mi cuenta" : "Iniciar sesión";
-
-    document.getElementById("botonEnviar").textContent =
-      modo === "registro" ? "Registrarme" : "Ingresar";
-
-    document.getElementById("mensajeAuth").textContent = "";
-  }
-
-  function cerrarFormulario() {
-    document.getElementById("formularioAcceso").hidden = true;
-    document.querySelector("main").hidden = false;
-    document.getElementById("formAuth").reset();
-  }
-  
-document.getElementById("formAuth").addEventListener("submit", async function(event) {
-  event.preventDefault();
-
-  const correo = document.getElementById("correo").value.trim().toLowerCase();
-  const contrasena = document.getElementById("contrasena").value;
-  const mensaje = document.getElementById("mensajeAuth");
-  const boton = document.getElementById("botonEnviar");
-
-  if (!correo.endsWith("@uandresbello.edu")) {
-    mensaje.textContent = "Debes utilizar tu correo institucional @uandresbello.edu.";
-    return;
-  }
-
-  if (contrasena.length < 8) {
-    mensaje.textContent = "La contraseña debe tener al menos 8 caracteres.";
-    return;
-  }
-
-  boton.disabled = true;
-  mensaje.textContent = "Procesando solicitud...";
-
-  try {
-    if (modoFormulario === "registro") {
-      const { error } = await supabaseClient.auth.signUp({
-        email: correo,
-        password: contrasena,
-        options: {
-          emailRedirectTo: "https://obs208vina-cloud.github.io/Ruta_digital016/index.html"
-        }
-      });
-
-      if (error) throw error;
-
-      mensaje.textContent =
-        "Solicitud de registro procesada. Revisa tu correo institucional para confirmar tu cuenta, si se solicita confirmación.";
-    } else {
-      const { error } = await supabaseClient.auth.signInWithPassword({
-        email: correo,
-        password: contrasena
-      });
-
-      if (error) throw error;
-
-      mensaje.textContent = "¡Inicio de sesión exitoso!";
-      
-document.querySelector("main").hidden = true;
-document.getElementById("formularioAcceso").hidden = true;
-
-const pantallaGenially = document.getElementById("pantallaGenially");
-pantallaGenially.hidden = false;
-
-document.body.style.padding = "0";
-document.body.style.display = "block";
-document.body.style.overflow = "hidden";
-
-pantallaGenially.style.width = "100%";
-pantallaGenially.style.height = "100vh";
-
+    function mostrarFormulario(modo) {
+      modoFormulario = modo;
+      document.getElementById('pantallaInicio').hidden = true;
+      document.getElementById('formularioAcceso').hidden = false;
+      document.getElementById('tituloFormulario').textContent = modo === 'registro' ? 'Crear mi cuenta' : 'Iniciar sesión';
+      document.getElementById('botonEnviar').textContent = modo === 'registro' ? 'Registrarme' : 'Ingresar';
+      document.getElementById('mensajeAuth').textContent = '';
     }
-  } catch (error) {
-    console.error("Error de autenticación:", error);
-    mensaje.textContent =
-      "No fue posible completar la solicitud. Verifica tus datos e inténtalo nuevamente.";
-  } finally {
-    boton.disabled = false;
-  }
-});
+    function cerrarFormulario() {
+      document.getElementById('formularioAcceso').hidden = true;
+      document.getElementById('pantallaInicio').hidden = false;
+      document.getElementById('formAuth').reset();
+    }
+    function mostrarGenially(usuario) {
+      document.getElementById('pantallaInicio').hidden = true;
+      document.getElementById('formularioAcceso').hidden = true;
+      document.getElementById('pantallaGenially').hidden = false;
+      document.getElementById('usuarioActivo').textContent = usuario.email || 'Sesión activa';
+      document.body.style.padding = '0';
+      document.body.style.overflow = 'hidden';
+    }
+    function mostrarInicio() {
+      document.getElementById('pantallaGenially').hidden = true;
+      document.getElementById('formularioAcceso').hidden = true;
+      document.getElementById('pantallaInicio').hidden = false;
+      document.body.style.padding = '24px';
+      document.body.style.overflow = '';
+      progresoActual = null;
+    }
 
-</script>
+    async function obtenerOCrearProgreso(usuario) {
+      // La política RLS garantiza que cada estudiante solo pueda leer su registro.
+      const { data: existentes, error: errorLectura } = await supabaseClient
+        .from('progreso_estudiantes')
+        .select('id, estudiante_id, etapa_actual, progreso')
+        .eq('estudiante_id', usuario.id)
+        .order('id', { ascending: true })
+        .limit(1);
+      if (errorLectura) throw errorLectura;
+      if (existentes && existentes.length) return existentes[0];
 
-<section id="pantallaGenially" hidden>
-  <iframe
-    src="https://view.genially.com/6ae65851927887383ece118f"
-    title="Ruta de Simulación Cero - CESFAM Regional Universitario"
-    allow="fullscreen; autoplay"
-    allowfullscreen
-    style="
-      width: 100%;
-      height: 100vh;
-      border: none;
-      display: block;
-    ">
-  </iframe>
-</section>
+      const { data: nuevo, error: errorInsercion } = await supabaseClient
+        .from('progreso_estudiantes')
+        .insert({ estudiante_id: usuario.id, etapa_actual: 'inicio', progreso: {} })
+        .select('id, estudiante_id, etapa_actual, progreso')
+        .single();
+      if (errorInsercion) throw errorInsercion;
+      return nuevo;
+    }
 
+    async function entrarConUsuario(usuario) {
+      if (!usuario || !usuario.email?.toLowerCase().endsWith('@uandresbello.edu')) {
+        await supabaseClient.auth.signOut();
+        mostrarInicio();
+        document.getElementById('mensajeInicio').textContent = 'El acceso requiere una cuenta institucional @uandresbello.edu.';
+        return;
+      }
+      // El acceso al Genially no depende de que la base de datos esté disponible.
+      mostrarGenially(usuario);
+      try {
+        progresoActual = await obtenerOCrearProgreso(usuario);
+        console.info('Progreso recuperado:', progresoActual.etapa_actual);
+      } catch (error) {
+        console.error('No se pudo recuperar el progreso:', error);
+        // Se avisa sin interrumpir la sesión: aún no hay puntos de guardado conectados.
+        document.getElementById('usuarioActivo').textContent = 'Progreso no disponible';
+      }
+    }
+
+    document.getElementById('formAuth').addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const correo = document.getElementById('correo').value.trim().toLowerCase();
+      const contrasena = document.getElementById('contrasena').value;
+      const mensaje = document.getElementById('mensajeAuth');
+      const boton = document.getElementById('botonEnviar');
+      if (!correo.endsWith('@uandresbello.edu')) {
+        mensaje.textContent = 'Debes utilizar tu correo institucional @uandresbello.edu.';
+        return;
+      }
+      if (contrasena.length < 8) {
+        mensaje.textContent = 'La contraseña debe tener al menos 8 caracteres.';
+        return;
+      }
+      boton.disabled = true;
+      mensaje.textContent = 'Procesando solicitud...';
+      try {
+        if (modoFormulario === 'registro') {
+          const { error } = await supabaseClient.auth.signUp({
+            email: correo,
+            password: contrasena,
+            options: { emailRedirectTo: 'https://obs208vina-cloud.github.io/Ruta_digital016/index.html' }
+          });
+          if (error) throw error;
+          mensaje.textContent = 'Solicitud de registro procesada. Revisa tu correo institucional para confirmar tu cuenta si se solicita confirmación.';
+        } else {
+          const { data, error } = await supabaseClient.auth.signInWithPassword({ email: correo, password: contrasena });
+          if (error) throw error;
+          await entrarConUsuario(data.user);
+        }
+      } catch (error) {
+        console.error('Error de autenticación:', error);
+        mensaje.textContent = 'No fue posible completar la solicitud. Verifica tus datos e inténtalo nuevamente.';
+      } finally {
+        boton.disabled = false;
+      }
+    });
+
+    document.getElementById('botonSalir').addEventListener('click', async () => {
+      try {
+        const { error } = await supabaseClient.auth.signOut();
+        if (error) throw error;
+        // Recarga el iframe para no dejar la sesión anterior abierta visualmente.
+        const iframe = document.querySelector('#pantallaGenially iframe');
+        iframe.src = iframe.src;
+        mostrarInicio();
+      } catch (error) {
+        console.error('Error al cerrar sesión:', error);
+        alert('No se pudo cerrar la sesión. Inténtalo nuevamente.');
+      }
+    });
+
+    (async () => {
+      try {
+        const { data, error } = await supabaseClient.auth.getUser();
+        if (error && error.name !== 'AuthSessionMissingError') throw error;
+        if (data?.user) await entrarConUsuario(data.user);
+      } catch (error) {
+        console.error('Error al recuperar sesión:', error);
+      }
+    })();
+  </script>
 </body>
 </html>
