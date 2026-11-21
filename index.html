@@ -171,13 +171,26 @@ if (
       ];
 
       if (!etapasPermitidas.includes(mensaje.etapa)) return;
+     
+try {
+  await guardarProgreso(mensaje.etapa);
+  console.info('Checkpoint guardado:', mensaje.etapa);
 
-      try {
-        await guardarProgreso(mensaje.etapa);
-        console.info('Checkpoint guardado:', mensaje.etapa);
-      } catch (error) {
-        console.error('Error al guardar checkpoint:', error);
-      }
+  event.source.postMessage({
+    tipo: 'CHECKPOINT_RESULTADO',
+    etapa: mensaje.etapa,
+    correcto: true
+  }, event.origin);
+
+} catch (error) {
+  console.error('Error al guardar checkpoint:', error);
+
+  event.source.postMessage({
+    tipo: 'CHECKPOINT_RESULTADO',
+    etapa: mensaje.etapa,
+    correcto: false
+  }, event.origin);
+}
     });
     async function entrarConUsuario(usuario) {
       if (!usuario || !usuario.email?.toLowerCase().endsWith('@uandresbello.edu')) {
