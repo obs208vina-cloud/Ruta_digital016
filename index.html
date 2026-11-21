@@ -313,6 +313,27 @@ if (
         }
         return;
       }
+      // Repetir la ruta desde el Escape Room sin borrar el progreso guardado.
+      if (mensaje.tipo === 'REINICIAR_RUTA') {
+        const responder = (correcto, mensajeTexto) => {
+          if (event.ports && event.ports[0]) event.ports[0].postMessage({ correcto, mensaje: mensajeTexto });
+        };
+        if (event.origin !== 'https://obs208vina-cloud.github.io') return;
+        if (parteVisible !== 5 || document.getElementById('pantallaGenially').hidden) {
+          responder(false, 'La evaluación final no está activa.');
+          return;
+        }
+        try {
+          const { data: { user }, error: errorUsuario } = await supabaseClient.auth.getUser();
+          if (errorUsuario || !user) throw new Error('Inicia sesión para repetir la ruta.');
+          cambiarParte(1);
+          responder(true, 'Volviendo al inicio de la ruta.');
+        } catch (error) {
+          console.error('No se pudo reiniciar la ruta:', error);
+          responder(false, 'No se pudo verificar la sesión. Inténtalo nuevamente.');
+        }
+        return;
+      }
       if (mensaje.tipo !== 'GUARDAR_CHECKPOINT') return;
 
       const etapasPermitidas = [
