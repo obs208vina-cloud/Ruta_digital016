@@ -93,6 +93,7 @@
       document.body.style.padding = '0';
       document.body.style.overflow = 'hidden';
     }
+    
     function mostrarInicio() {
       document.getElementById('pantallaGenially').hidden = true;
       document.getElementById('formularioAcceso').hidden = true;
@@ -121,7 +122,34 @@
       if (errorInsercion) throw errorInsercion;
       return nuevo;
     }
+    async function guardarProgreso(etapa) {
+      const { data: { user }, error: errorUsuario } =
+        await supabaseClient.auth.getUser();
 
+      if (errorUsuario || !user) {
+        throw new Error('Debes iniciar sesión para guardar tu progreso.');
+      }
+
+      if (!progresoActual) {
+        progresoActual = await obtenerOCrearProgreso(user);
+      }
+
+      const { data, error } = await supabaseClient
+        .from('progreso_estudiantes')
+        .update({
+          etapa_actual: etapa
+        })
+        .eq('id', progresoActual.id)
+        .eq('estudiante_id', user.id)
+        .select('id, estudiante_id, etapa_actual, progreso')
+        .single();
+
+      if (error) throw error;
+
+      progresoActual = data;
+      console.info('Checkpoint guardado:', etapa);
+      return data;
+    }
     async function entrarConUsuario(usuario) {
       if (!usuario || !usuario.email?.toLowerCase().endsWith('@uandresbello.edu')) {
         await supabaseClient.auth.signOut();
