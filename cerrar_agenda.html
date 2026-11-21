@@ -1,0 +1,98 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background: transparent;
+  font-family: Arial, sans-serif;
+}
+
+body {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 80px;
+}
+
+button {
+  width: 420px;
+  max-width: 98%;
+  height: 54px;
+  border-radius: 999px;
+  background: #006675;
+  color: white;
+  border: 3px solid #D4F4F1;
+  font-size: 15px;
+  font-weight: bold;
+  cursor: pointer;
+  box-shadow: 0 3px 8px rgba(0,0,0,0.18);
+}
+
+button:hover {
+  background: #087e87;
+}
+
+button:disabled {
+  opacity: .75;
+  cursor: wait;
+}
+</style>
+</head>
+<body>
+
+<button id="continuar" type="button">
+  ➜ CERRAR AGENDA Y CONTINUAR A EVALUACIÓN
+</button>
+
+<script>
+const boton = document.getElementById('continuar');
+
+boton.addEventListener('click', function () {
+  boton.disabled = true;
+  boton.textContent = 'Comprobando avance...';
+
+  const canal = new MessageChannel();
+
+  const espera = setTimeout(() => {
+    boton.disabled = false;
+    boton.textContent =
+      '➜ CERRAR AGENDA Y CONTINUAR A EVALUACIÓN';
+    alert('No se recibió respuesta. Comprueba que la evaluación esté habilitada.');
+    canal.port1.close();
+  }, 10000);
+
+  canal.port1.onmessage = function (event) {
+    clearTimeout(espera);
+    const respuesta = event.data || {};
+
+    if (!respuesta.correcto) {
+      boton.disabled = false;
+      boton.textContent =
+        '➜ CERRAR AGENDA Y CONTINUAR A EVALUACIÓN';
+      alert(respuesta.mensaje ||
+        'Primero guarda el progreso del Paciente 3.');
+    } else {
+      boton.textContent = 'Abriendo evaluación...';
+    }
+
+    canal.port1.close();
+  };
+
+  window.top.postMessage(
+    {
+      tipo: 'CONTINUAR_A_EVALUACION'
+    },
+    'https://obs208vina-cloud.github.io',
+    [canal.port2]
+  );
+});
+</script>
+</body>
+</html>
