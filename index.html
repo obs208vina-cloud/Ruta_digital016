@@ -204,7 +204,33 @@ if (
 
       const mensaje = event.data;
 
-      if (!mensaje || mensaje.tipo !== 'GUARDAR_CHECKPOINT') return;
+      if (!mensaje) return;
+      if (mensaje.tipo === 'CONTINUAR_A_PACIENTE_1') {
+        const responder = (correcto, mensajeTexto) => {
+          if (event.ports && event.ports[0]) event.ports[0].postMessage({ correcto, mensaje: mensajeTexto });
+        };
+        try {
+          if (event.origin !== 'https://obs208vina-cloud.github.io') return;
+          if (parteVisible !== 1 || document.getElementById('pantallaGenially').hidden) {
+            responder(false, 'La ruta 1 no está activa.');
+            return;
+          }
+          const { data: { user }, error: errorUsuario } = await supabaseClient.auth.getUser();
+          if (errorUsuario || !user) throw new Error('Inicia sesión para continuar.');
+          progresoActual = await obtenerOCrearProgreso(user);
+          if (ordenEtapas.indexOf(progresoActual.etapa_actual) < 1) {
+            responder(false, 'Primero guarda el Escape Room y espera la confirmación.');
+            return;
+          }
+          responder(true, 'Checkpoint confirmado');
+          cambiarParte(2);
+        } catch (error) {
+          console.error('No se pudo continuar al Paciente 1:', error);
+          responder(false, 'No se pudo comprobar el progreso. Inténtalo nuevamente.');
+        }
+        return;
+      }
+      if (mensaje.tipo !== 'GUARDAR_CHECKPOINT') return;
 
       const etapasPermitidas = [
         'inicio',
