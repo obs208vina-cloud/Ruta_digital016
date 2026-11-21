@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; width: 100%; height: 100%; overflow: hidden;
+    background: transparent; font-family: Arial, sans-serif;
+  }
+  body { display: flex; align-items: center; justify-content: center; }
+  button {
+    width: calc(100% - 12px);
+    max-width: 510px;
+    height: min(70px, calc(100% - 10px));
+    min-height: 0;
+    padding: 0 18px;
+    border: 3px solid #d4f4f1;
+    border-radius: 999px;
+    color: #fff;
+    font-size: clamp(15px, 2.4vw, 24px);
+    font-weight: 800;
+    letter-spacing: .2px;
+    white-space: nowrap;
+    cursor: pointer;
+    background: linear-gradient(180deg, #078491 0%, #006575 55%, #005361 100%);
+    box-shadow: 0 4px 10px #003e4b35, inset 0 0 0 2px #0a7380;
+  }
+  button:disabled { opacity: .75; cursor: wait; }
+</style>
+</head>
+<body>
+<button id="continuar" type="button">➜ ENTRAR AL BOX</button>
+<script>
+  const boton = document.getElementById('continuar');
+  boton.addEventListener('click', () => {
+    boton.disabled = true;
+    boton.textContent = 'Comprobando avance...';
+    const canal = new MessageChannel();
+    const espera = setTimeout(() => {
+      boton.disabled = false;
+      boton.textContent = '➜ ENTRAR AL BOX';
+      alert('No se recibió respuesta. Abre la simulación desde GitHub e inténtalo nuevamente.');
+      canal.port1.close();
+    }, 10000);
+    canal.port1.onmessage = (evento) => {
+      clearTimeout(espera);
+      const respuesta = evento.data || {};
+      if (!respuesta.correcto) {
+        boton.disabled = false;
+        boton.textContent = '➜ ENTRAR AL BOX';
+        alert(respuesta.mensaje || 'Primero guarda el Escape Room.');
+      } else {
+        boton.textContent = 'Abriendo Paciente 1...';
+      }
+      canal.port1.close();
+    };
+    window.top.postMessage({ tipo: 'CONTINUAR_A_PACIENTE_1' }, 'https://obs208vina-cloud.github.io', [canal.port2]);
+  });
+</script>
+</body>
+</html>
