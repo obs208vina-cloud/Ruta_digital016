@@ -34,6 +34,8 @@
     #pantallaGenially iframe { width:100%; height:100%; border:0; display:block; }
     #barraSesion { position:absolute; z-index:2; top:8px; right:10px; display:flex; gap:8px; align-items:center; padding:5px 8px; border-radius:10px; background:rgba(255,255,255,.92); box-shadow:0 2px 10px #0002; font-size:12px; }
     #barraSesion button { background:#087e87; color:white; border:0; border-radius:7px; padding:7px 9px; cursor:pointer; }
+    #botonSiguiente { background:#16825d !important; }
+    #botonSiguiente:disabled { opacity:.55; cursor:not-allowed; }
     @media(max-width:600px) { #barraSesion span { display:none; } .tarjeta,#formularioAcceso { padding:26px; } }
   </style>
 </head>
@@ -75,7 +77,8 @@
   <section id="pantallaGenially" hidden>
     <div id="barraSesion">
       <span id="usuarioActivo"></span>
-      <button type="button" id="botonSalir">Cerrar sesión</button>
+      <button type="button" id="botonSiguiente" hidden>Continuar a Paciente 1 →</button>
+      <button type="button" id="botonSalir">Guardar y salir</button>
     </div>
     <iframe src="https://view.genially.com/6b01e963728f59ea93de097e" title="Ruta de Simulación Cero - CESFAM Regional Universitario" allow="fullscreen; autoplay" allowfullscreen></iframe>
   </section>
@@ -86,6 +89,24 @@
     const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLIC_KEY);
     let modoFormulario = 'login';
     let progresoActual = null;
+    const GENIALLY_1 = 'https://view.genially.com/6b01e963728f59ea93de097e';
+    const GENIALLY_2 = 'https://view.genially.com/6b01ea78bb38145bf00de2b7';
+    const ordenEtapas = ['inicio','escape_room','paciente_1','paciente_2','paciente_3','evaluacion_final'];
+    let parteVisible = 1;
+    function cambiarParte(parte) {
+      if (parte !== 1 && parte !== 2) return;
+      parteVisible = parte;
+      const iframe = document.querySelector('#pantallaGenially iframe');
+      const destino = parte === 2 ? GENIALLY_2 : GENIALLY_1;
+      if (iframe.getAttribute('src') !== destino) iframe.setAttribute('src', destino);
+      actualizarBotonSiguiente();
+    }
+    function actualizarBotonSiguiente() {
+      const boton = document.getElementById('botonSiguiente');
+      boton.hidden = parteVisible !== 1;
+      boton.disabled = !progresoActual || ordenEtapas.indexOf(progresoActual.etapa_actual) < 1;
+      boton.title = boton.disabled ? 'Primero guarda el Escape Room' : 'Ir a Paciente 1';
+    }
 
     function mostrarFormulario(modo) {
       modoFormulario = modo;
@@ -100,7 +121,8 @@
       document.getElementById('pantallaInicio').hidden = false;
       document.getElementById('formAuth').reset();
     }
-    function mostrarGenially(usuario) {
+    function mostrarGenially(usuario, parte = 1) {
+      cambiarParte(parte);
       document.getElementById('pantallaInicio').hidden = true;
       document.getElementById('formularioAcceso').hidden = true;
       document.getElementById('pantallaMision').hidden = true;
@@ -151,11 +173,16 @@
         progresoActual = await obtenerOCrearProgreso(user);
       }
 
+      // No retroceder el progreso si se vuelve a recorrer una etapa anterior.
+      const { data: actual, error: errorActual } = await supabaseClient
+        .from('progreso_estudiantes').select('etapa_actual')
+        .eq('id', progresoActual.id).eq('estudiante_id', user.id).single();
+      if (errorActual) throw errorActual;
+      const etapaGuardada = ordenEtapas.indexOf(actual.etapa_actual) > ordenEtapas.indexOf(etapa)
+        ? actual.etapa_actual : etapa;
       const { data, error } = await supabaseClient
         .from('progreso_estudiantes')
-        .update({
-          etapa_actual: etapa
-        })
+        .update({ etapa_actual: etapaGuardada })
         .eq('id', progresoActual.id)
         .eq('estudiante_id', user.id)
         .select('id, estudiante_id, etapa_actual, progreso')
@@ -164,6 +191,7 @@
       if (error) throw error;
 
       progresoActual = data;
+      actualizarBotonSiguiente();
       console.info('Checkpoint guardado:', etapa);
       return data;
     }
@@ -254,7 +282,9 @@ if (event.ports && event.ports[0]) {
         estado.textContent = 'Tu último avance: ' + (nombresEtapa[etapa] || etapa);
         if (etapa !== 'inicio') {
           retomar.hidden = false;
-          aviso.textContent = 'La recuperación automática de la diapositiva todavía está en preparación. Puedes ingresar desde el inicio mientras la configuramos.';
+          retomar.disabled = false;
+          if (etapa === 'escape_room') aviso.textContent = 'Puedes continuar desde Paciente 1.';
+          else aviso.textContent = 'Las partes posteriores se habilitarán cuando incorporemos sus enlaces.';
         }
       } catch (error) {
         console.error('No se pudo recuperar el progreso:', error);
@@ -266,14 +296,37 @@ if (event.ports && event.ports[0]) {
 
     document.getElementById('botonComenzar').addEventListener('click', async () => {
       const { data: { user } } = await supabaseClient.auth.getUser();
-      if (user) mostrarGenially(user);
+      if (user) mostrarGenially(user, 1);
       else mostrarInicio();
     });
 
-    // Se habilitará al verificar un mecanismo de navegación a diapositivas internas de Genially.
-    document.getElementById('botonRetomar').addEventListener('click', () => {
-      document.getElementById('avisoMision').textContent =
-        'Todavía estamos configurando el acceso directo al último checkpoint.';
+    document.getElementById('botonRetomar').addEventListener('click', async () => {
+      const { data: { user } } = await supabaseClient.auth.getUser();
+      if (!user) return mostrarInicio();
+      try {
+        progresoActual = await obtenerOCrearProgreso(user);
+        if (ordenEtapas.indexOf(progresoActual.etapa_actual) >= 1) mostrarGenially(user, 2);
+        else mostrarGenially(user, 1);
+      } catch (error) {
+        document.getElementById('avisoMision').textContent = 'No se pudo verificar tu avance. Inténtalo nuevamente.';
+      }
+    });
+
+    document.getElementById('botonSiguiente').addEventListener('click', async () => {
+      const boton = document.getElementById('botonSiguiente');
+      boton.disabled = true;
+      try {
+        const { data: { user } } = await supabaseClient.auth.getUser();
+        if (!user) throw new Error('Sesión no disponible');
+        progresoActual = await obtenerOCrearProgreso(user);
+        if (ordenEtapas.indexOf(progresoActual.etapa_actual) < 1) {
+          alert('Primero debes guardar el Escape Room y esperar la confirmación.');
+          return;
+        }
+        cambiarParte(2);
+      } catch (error) {
+        alert('No fue posible comprobar el checkpoint. Inténtalo nuevamente.');
+      } finally { actualizarBotonSiguiente(); }
     });
 
     async function cerrarSesion() {
@@ -281,7 +334,7 @@ if (event.ports && event.ports[0]) {
         const { error } = await supabaseClient.auth.signOut();
         if (error) throw error;
         const iframe = document.querySelector('#pantallaGenially iframe');
-        iframe.src = iframe.src;
+        cambiarParte(1);
         mostrarInicio();
       } catch (error) {
         console.error('Error al cerrar sesión:', error);
